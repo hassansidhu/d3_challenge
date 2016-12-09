@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.outer {
+  fill: #ddc;
+}
+
+.subunit { 
+  stroke: #dcd;
+  stroke-dasharray: 2,2;
+  stroke-linejoin: round;
+ }
+
+ .tip {
+  fill : #000;
+ }
+
+ .nba-team {
+  line-height: 1;
+  font-weight: bold;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 2px;
+ }
+
+.subunit-label {
+  fill: #777;
+  fill-opacity: .5;
+  font-size: 6px;
+  text-anchor: middle;
+}
+
+.subunit-label.USAK{
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+
+</style>
+<body>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+<script>
+
+var places= [ 
+  {
+    team:'Boston Celtics',
+    arena:'TD Garden',
+    latitude:'42.3299601431',
+    longitude:'-71.0700136736'
+  },
+
+  {
+    team:'Atlanta Hawks',
+    arena: 'Philips Arena',
+    latitude:'33.830013854',
+    longitude:'-84.3999493833'
+  },
+
+  {
+    team:'Orlando Magic',
+    arena: 'Amway Center',
+    latitude:'28.511922684589933 ',
+    longitude:'-81.38197621517077'
+  },
+
+  {
+    team:'Brookyln Nets',
+    arena: 'Barclays Center',
+    latitude:'40.749979064',
+    longitude:'-73.9800169288'
+  },
+    
+  {
+    team:'Toronto Raptors',
+    arena: 'Air Canada Center',
+    latitude:'43.6999798778',
+    longitude:'-79.4200207944'
+  },
+
+  {
+    team:'Chicago Bulls',
+    arena: 'United Center',
+    latitude:'41.8299906607',
+    longitude:'-87.7500549741'
+  },
+    {
+    team:'Houston Rockets',
+    arena: 'Toyota Center',
+    latitude:'29.8199743846',
+    longitude:'-95.3399792905'
+  },
+    {
+    team:'Denver Nuggets',
+    arena: 'Pepsi Center',
+    latitude:'39.7391880484',
+    longitude:'-104.984015952'
+  },
+    {
+    team:'Dallas Mavericks',
+    arena: 'American Airlines Center',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'New Orleans Pelicans',
+    arena: 'Smoothie King Center',
+    latitude:'32.8200238231',
+    longitude:'-96.8400169289'
+  },
+    {
+    team:'Phoenix suns',
+    arena: 'US Airways Center',
+    latitude:'29.9950024607',
+    longitude:'-90.03996688'
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  },
+    {
+    team:'',
+    arena: '',
+    latitude:'',
+    longitude:''
+  }
+
+];
+
+var width = 1000,
+    height = 960;
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("class",'outer')
+    .attr("height", height);
+
+var projection = d3.geo.albers()
+    .scale(1300)    
+    .translate([width / 2, height / 2]);
+
+var path = d3.geo.path()
+    .projection(projection);
+
+
+
+
+d3.json("/states.topo.json", function(error, us) {
+  var subunits = topojson.feature(us, us.objects.states);
+  if (error) return console.error(error);
+  console.log(subunits);
+
+svg.selectAll(".subunit")
+      .data(topojson.feature(us, us.objects.states).features)
+      .enter().append("path")
+      .attr("class", function(d) { return "subunit " + d.id})
+      .attr("d", path);
+
+
+  svg.selectAll(".subunit-label")
+      .data(subunits.features)
+      .enter().append("text")
+      .attr("class", function(d) { return "subunit-label " + d.id; })
+      .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .text(function(d) { return d.properties.name; });
+
+  var tip = d3.tip()
+            .attr('class', 'nba-team')
+            .offset([-6, 0])
+            .html(function(d) {
+              return ("<span style='color:red'>"+d.team+"</br>"+d.arena +"</span>");
+            })
+              
+            svg.call(tip);
+
+
+
+svg.selectAll(".pin")
+              .data(places)
+              .enter().append("circle", ".pin")
+              .attr("class", 'tip')
+              .attr("r", 7)
+              .attr("transform", function(d) {
+              return "translate(" + projection([
+                d.longitude,
+                d.latitude
+              ]) + ")";
+              })
+              .on('mouseover', tip.show)
+              .on('mouseout', tip.hide)
+              
+
+});
+
+
+</script>
